@@ -1,0 +1,10 @@
+1. navigate to file path
+	# cd Users\Admin\Desktop\ocr_app
+2. create a virtual environment in cmd
+	# py -m venv ocr_app_env#
+3. activate virtual environment
+	# ocr_app_env\Scripts\activate
+4. Install packages
+	# py -m pip install PyQt6 paddleocr pillow piexif   /    py -m pip install PyQt6 easyocr pillow piexif
+5. Run the app
+	# py main.py
