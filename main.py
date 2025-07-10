@@ -160,7 +160,7 @@ class OCRApp(QMainWindow):
         
     def init_ui(self):
         """Initialize the user interface"""
-        self.setWindowTitle("OCR Text Coordinate Extractor")
+        self.setWindowTitle("Offline GPS Extraction and Embedding Tool")
         self.setGeometry(100, 100, 1200, 800)
         
         # Central widget
@@ -421,16 +421,15 @@ class OCRApp(QMainWindow):
                 print(f"Failed to embed metadata in {image_path}: {str(e)}")
 
 def main():
-    print('app')
+
     app = QApplication(sys.argv)
     
-    print('style')
+
     # Set application style
     app.setStyle('Fusion')
-    
-    print('window')
+
     window = OCRApp()
-    print('show')
+
     window.show()
     
     sys.exit(app.exec())
