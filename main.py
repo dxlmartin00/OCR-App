@@ -723,7 +723,7 @@ class OCRApp(QMainWindow):
                     
                     # Add comprehensive metadata
                     exif_dict['0th'][piexif.ImageIFD.ImageDescription] = f"GPS: {gps_coords['latitude']:.6f}, {gps_coords['longitude']:.6f}"
-                    exif_dict['0th'][piexif.ImageIFD.Software] = "GPS OCR Extractor"
+                    exif_dict['0th'][piexif.ImageIFD.Software] = "LIGER"
                     exif_dict['0th'][piexif.ImageIFD.XPKeywords] = f"GPS {gps_coords['source_text']}".encode('utf-16le')
                     
                     # Add processing info to EXIF
