@@ -19,76 +19,234 @@ import piexif
 import easyocr
 
 class GPSExtractor:
-    """Class to extract GPS coordinates from text using various patterns"""
+    """Enhanced GPS coordinate extractor with improved accuracy and reduced false positives"""
     
     def __init__(self):
-        # Comprehensive GPS coordinate patterns
+        # More precise GPS coordinate patterns with validation
         self.gps_patterns = [
-            # Decimal degrees with N/S/E/W
-            r'([NS])\s*([+-]?\d{1,2}\.?\d*)[°\s]*,?\s*([EW])\s*([+-]?\d{1,3}\.?\d*)[°\s]*',
-            r'([+-]?\d{1,2}\.?\d*)[°\s]*([NS])\s*,?\s*([+-]?\d{1,3}\.?\d*)[°\s]*([EW])',
+            # GPS with explicit labels - highest confidence
+            {
+                'pattern': r'(?:GPS|COORDINATES?)[:\s]*\(?([+-]?\d{1,2}\.?\d{0,8})[°\s]*,?\s*([+-]?\d{1,3}\.?\d{0,8})[°\s]*\)?',
+                'priority': 10,
+                'type': 'labeled'
+            },
+            {
+                'pattern': r'(?:LAT|LATITUDE)[:\s]*([+-]?\d{1,2}\.?\d{0,8})[°\s]*([NS])?\s*,?\s*(?:LON|LONGITUDE)[:\s]*([+-]?\d{1,3}\.?\d{0,8})[°\s]*([EW])?',
+                'priority': 9,
+                'type': 'lat_lon'
+            },
             
-            # Degrees, minutes, seconds (DMS)
-            r'([NS])\s*(\d{1,2})[°\s]*(\d{1,2})[\'′\s]*(\d{1,2}\.?\d*)[\"″\s]*,?\s*([EW])\s*(\d{1,3})[°\s]*(\d{1,2})[\'′\s]*(\d{1,2}\.?\d*)[\"″\s]*',
-            r'(\d{1,2})[°\s]*(\d{1,2})[\'′\s]*(\d{1,2}\.?\d*)[\"″\s]*([NS])\s*,?\s*(\d{1,3})[°\s]*(\d{1,2})[\'′\s]*(\d{1,2}\.?\d*)[\"″\s]*([EW])',
+            # Degree-minute-second format with direction indicators
+            {
+                'pattern': r'([NS])\s*(\d{1,2})[°\s]+(\d{1,2})[\'′\s]+(\d{1,2}(?:\.\d+)?)[\"″\s]*,?\s*([EW])\s*(\d{1,3})[°\s]+(\d{1,2})[\'′\s]+(\d{1,2}(?:\.\d+)?)[\"″\s]*',
+                'priority': 8,
+                'type': 'dms_dir_first'
+            },
+            {
+                'pattern': r'(\d{1,2})[°\s]+(\d{1,2})[\'′\s]+(\d{1,2}(?:\.\d+)?)[\"″\s]*([NS])\s*,?\s*(\d{1,3})[°\s]+(\d{1,2})[\'′\s]+(\d{1,2}(?:\.\d+)?)[\"″\s]*([EW])',
+                'priority': 8,
+                'type': 'dms_dir_last'
+            },
             
-            # Degrees and decimal minutes (DDM)
-            r'([NS])\s*(\d{1,2})[°\s]*(\d{1,2}\.?\d*)[\'′\s]*,?\s*([EW])\s*(\d{1,3})[°\s]*(\d{1,2}\.?\d*)[\'′\s]*',
-            r'(\d{1,2})[°\s]*(\d{1,2}\.?\d*)[\'′\s]*([NS])\s*,?\s*(\d{1,3})[°\s]*(\d{1,2}\.?\d*)[\'′\s]*([EW])',
+            # Degree-decimal minute format
+            {
+                'pattern': r'([NS])\s*(\d{1,2})[°\s]+(\d{1,2}\.?\d*)[\'′\s]*,?\s*([EW])\s*(\d{1,3})[°\s]+(\d{1,2}\.?\d*)[\'′\s]*',
+                'priority': 7,
+                'type': 'dm_dir_first'
+            },
+            {
+                'pattern': r'(\d{1,2})[°\s]+(\d{1,2}\.?\d*)[\'′\s]*([NS])\s*,?\s*(\d{1,3})[°\s]+(\d{1,2}\.?\d*)[\'′\s]*([EW])',
+                'priority': 7,
+                'type': 'dm_dir_last'
+            },
             
-            # UTM coordinates
-            r'(\d{1,2})([NS])\s*(\d{6,7})\s*(\d{7,8})',
+            # Decimal degrees with direction indicators
+            {
+                'pattern': r'([NS])\s*([+-]?\d{1,2}\.?\d{0,8})[°\s]*,?\s*([EW])\s*([+-]?\d{1,3}\.?\d{0,8})[°\s]*',
+                'priority': 6,
+                'type': 'decimal_dir_separate'
+            },
+            {
+                'pattern': r'([+-]?\d{1,2}\.?\d{0,8})[°\s]*([NS])\s*,?\s*([+-]?\d{1,3}\.?\d{0,8})[°\s]*([EW])',
+                'priority': 6,
+                'type': 'decimal_dir_attached'
+            },
             
-            # MGRS coordinates
-            r'(\d{1,2}[A-Z]{1,3})\s*([A-Z]{2})\s*(\d{5,10})',
-            
-            # Simple decimal degrees
-            r'([+-]?\d{1,2}\.\d+)[°\s]*,?\s*([+-]?\d{1,3}\.\d+)[°\s]*',
-            
-            # Coordinates with LAT/LON labels
-            r'LAT[:\s]*([+-]?\d{1,2}\.?\d*)[°\s]*([NS])?\s*,?\s*LON[:\s]*([+-]?\d{1,3}\.?\d*)[°\s]*([EW])?',
-            r'LATITUDE[:\s]*([+-]?\d{1,2}\.?\d*)[°\s]*([NS])?\s*,?\s*LONGITUDE[:\s]*([+-]?\d{1,3}\.?\d*)[°\s]*([EW])?',
-            
-            # GPS with parentheses
-            r'GPS[:\s]*\(?([+-]?\d{1,2}\.?\d*)[°\s]*,?\s*([+-]?\d{1,3}\.?\d*)[°\s]*\)?',
+            # Pure decimal degrees (lowest priority, needs validation)
+            {
+                'pattern': r'([+-]?\d{1,2}\.\d{4,8})[°\s]*,?\s*([+-]?\d{1,3}\.\d{4,8})[°\s]*',
+                'priority': 3,
+                'type': 'pure_decimal'
+            }
+        ]
+        
+        # Exclusion patterns to avoid false positives
+        self.exclusion_patterns = [
+            r'\d{1,2}:\d{2}:\d{2}',  # Time format (HH:MM:SS)
+            r'\d{1,2}:\d{2}\s*(?:AM|PM)',  # 12-hour time
+            r'\d{2,4}-\d{1,2}-\d{1,2}',  # Date format
+            r'\d{1,2}/\d{1,2}/\d{2,4}',  # Date format
+            r'[\d.]+\s*(?:KB|MB|GB|TB)',  # File sizes
+            r'\$[\d.]+',  # Currency
+            r'[\d.]+\s*(?:MM|CM|M|KM|IN|FT)',  # Measurements
+            r'[\d.]+\s*(?:%|PERCENT)',  # Percentages
+            r'[\d.]+\s*(?:V|VOLT|A|AMP)',  # Electrical measurements
+            r'ISO\s*\d+',  # ISO values
+            r'F/\d+',  # F-stop values
+            r'\d+\s*(?:MP|MEGAPIXEL)',  # Camera specs
+            r'[\d.]+\s*(?:°C|°F|CELSIUS|FAHRENHEIT)',  # Temperature
+            r'SERIAL\s*[:#]?\s*[\w\d]+',  # Serial numbers
+            r'MODEL\s*[:#]?\s*[\w\d]+',  # Model numbers
         ]
     
-    def extract_gps_coordinates(self, text_list: List[str]) -> Optional[Dict[str, Any]]:
-        """Extract GPS coordinates from a list of text strings"""
-        all_text = ' '.join(text_list).upper()
+    def is_false_positive(self, text: str) -> bool:
+        """Check if text matches exclusion patterns"""
+        text_upper = text.upper().strip()
         
-        for pattern in self.gps_patterns:
-            matches = re.finditer(pattern, all_text, re.IGNORECASE)
+        for pattern in self.exclusion_patterns:
+            if re.search(pattern, text_upper):
+                return True
+        
+        return False
+    
+    def validate_gps_coordinates(self, lat: float, lon: float, source_text: str) -> bool:
+        """Validate GPS coordinates for reasonableness"""
+        # Basic range check
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            return False
+        
+        # Check for obvious false positives
+        if self.is_false_positive(source_text):
+            return False
+        
+        # Reject coordinates that are too simple (like 1.0, 2.0)
+        if abs(lat - round(lat)) == 0 and abs(lon - round(lon)) == 0 and abs(lat) < 10 and abs(lon) < 10:
+            return False
+        
+        # Reject coordinates at exactly 0,0 (Gulf of Guinea - often a default value)
+        if lat == 0 and lon == 0:
+            return False
+        
+        # For pure decimal coordinates, require reasonable precision
+        lat_str = str(abs(lat))
+        lon_str = str(abs(lon))
+        if '.' in lat_str and '.' in lon_str:
+            lat_decimals = len(lat_str.split('.')[1])
+            lon_decimals = len(lon_str.split('.')[1])
+            # Require at least 3 decimal places for high confidence
+            if lat_decimals < 3 or lon_decimals < 3:
+                if not any(indicator in source_text.upper() for indicator in ['N', 'S', 'E', 'W', 'GPS', 'LAT', 'LON']):
+                    return False
+        
+        return True
+    
+    def extract_gps_coordinates(self, text_list: List[str]) -> Optional[Dict[str, Any]]:
+        """Extract GPS coordinates from a list of text strings with improved accuracy"""
+        # Combine all text and clean it
+        combined_text = ' '.join(text_list)
+        
+        # Remove common noise patterns that might interfere
+        cleaned_text = re.sub(r'\b(?:EXIF|CAMERA|PHOTO|IMAGE)\b', '', combined_text, flags=re.IGNORECASE)
+        
+        candidates = []
+        
+        # Try each pattern in priority order
+        for pattern_info in sorted(self.gps_patterns, key=lambda x: x['priority'], reverse=True):
+            pattern = pattern_info['pattern']
+            matches = re.finditer(pattern, combined_text, re.IGNORECASE)
+            
             for match in matches:
-                result = self._parse_match(match, pattern)
-                if result:
-                    return result
+                result = self._parse_match(match, pattern_info)
+                if result and self.validate_gps_coordinates(
+                    result['latitude'], 
+                    result['longitude'], 
+                    result['source_text']
+                ):
+                    candidates.append({
+                        **result,
+                        'priority': pattern_info['priority'],
+                        'type': pattern_info['type']
+                    })
+        
+        # Return the highest priority valid match
+        if candidates:
+            best_candidate = max(candidates, key=lambda x: x['priority'])
+            # Remove priority and type from final result
+            return {
+                'latitude': best_candidate['latitude'],
+                'longitude': best_candidate['longitude'],
+                'source_text': best_candidate['source_text'],
+                'extraction_confidence': self._calculate_confidence(best_candidate)
+            }
         
         return None
     
-    def _parse_match(self, match, pattern) -> Optional[Dict[str, Any]]:
-        """Parse a regex match into GPS coordinates"""
+    def _calculate_confidence(self, candidate: Dict[str, Any]) -> str:
+        """Calculate confidence level based on pattern type and validation"""
+        priority = candidate['priority']
+        pattern_type = candidate['type']
+        
+        if priority >= 9:
+            return "HIGH"
+        elif priority >= 7:
+            return "MEDIUM-HIGH"
+        elif priority >= 5:
+            return "MEDIUM"
+        else:
+            return "LOW"
+    
+    def _parse_match(self, match, pattern_info) -> Optional[Dict[str, Any]]:
+        """Parse a regex match into GPS coordinates based on pattern type"""
         groups = match.groups()
+        pattern_type = pattern_info['type']
         
         try:
-            # Handle different pattern types
-            if 'LAT' in pattern.upper() or 'LON' in pattern.upper():
-                # LAT/LON pattern
+            if pattern_type == 'labeled':
+                # GPS: lat, lon or similar
+                lat, lon = float(groups[0]), float(groups[1])
+                
+            elif pattern_type == 'lat_lon':
+                # LAT: lat N, LON: lon E
                 lat = float(groups[0])
                 lat_dir = groups[1] if len(groups) > 1 and groups[1] else None
                 lon = float(groups[2])
                 lon_dir = groups[3] if len(groups) > 3 and groups[3] else None
                 
-                if lat_dir == 'S': lat = -lat
-                if lon_dir == 'W': lon = -lon
+                if lat_dir == 'S' or (lat_dir is None and lat > 0 and 'S' in match.group().upper()):
+                    lat = -lat
+                if lon_dir == 'W' or (lon_dir is None and lon > 0 and 'W' in match.group().upper()):
+                    lon = -lon
+                    
+            elif pattern_type == 'dms_dir_first':
+                # N DD MM SS.ss, E DDD MM SS.ss
+                lat = self._dms_to_decimal(float(groups[1]), float(groups[2]), float(groups[3]))
+                if groups[0] == 'S': lat = -lat
+                lon = self._dms_to_decimal(float(groups[5]), float(groups[6]), float(groups[7]))
+                if groups[4] == 'W': lon = -lon
                 
-            elif len(groups) == 2:
-                # Simple decimal degrees
-                lat, lon = float(groups[0]), float(groups[1])
+            elif pattern_type == 'dms_dir_last':
+                # DD MM SS.ss N, DDD MM SS.ss E
+                lat = self._dms_to_decimal(float(groups[0]), float(groups[1]), float(groups[2]))
+                if groups[3] == 'S': lat = -lat
+                lon = self._dms_to_decimal(float(groups[4]), float(groups[5]), float(groups[6]))
+                if groups[7] == 'W': lon = -lon
                 
-            elif len(groups) == 4 and all(self._is_float(g) for g in groups[:2]):
-                # N/S/E/W with decimal degrees
-                if groups[0] in ['N', 'S']:
+            elif pattern_type in ['dm_dir_first', 'dm_dir_last']:
+                # Degree-decimal minute formats
+                if pattern_type == 'dm_dir_first':
+                    lat = self._dm_to_decimal(float(groups[1]), float(groups[2]))
+                    if groups[0] == 'S': lat = -lat
+                    lon = self._dm_to_decimal(float(groups[4]), float(groups[5]))
+                    if groups[3] == 'W': lon = -lon
+                else:
+                    lat = self._dm_to_decimal(float(groups[0]), float(groups[1]))
+                    if groups[2] == 'S': lat = -lat
+                    lon = self._dm_to_decimal(float(groups[3]), float(groups[4]))
+                    if groups[5] == 'W': lon = -lon
+                    
+            elif pattern_type in ['decimal_dir_separate', 'decimal_dir_attached']:
+                # Decimal degrees with direction
+                if pattern_type == 'decimal_dir_separate':
                     lat = float(groups[1])
                     if groups[0] == 'S': lat = -lat
                     lon = float(groups[3])
@@ -99,57 +257,21 @@ class GPSExtractor:
                     lon = float(groups[2])
                     if groups[3] == 'W': lon = -lon
                     
-            elif len(groups) >= 8:
-                # DMS format
-                if groups[0] in ['N', 'S']:
-                    # Pattern: N DD MM SS.ss, E DDD MM SS.ss
-                    lat = self._dms_to_decimal(float(groups[1]), float(groups[2]), float(groups[3]))
-                    if groups[0] == 'S': lat = -lat
-                    lon = self._dms_to_decimal(float(groups[5]), float(groups[6]), float(groups[7]))
-                    if groups[4] == 'W': lon = -lon
-                else:
-                    # Pattern: DD MM SS.ss N, DDD MM SS.ss E
-                    lat = self._dms_to_decimal(float(groups[0]), float(groups[1]), float(groups[2]))
-                    if groups[3] == 'S': lat = -lat
-                    lon = self._dms_to_decimal(float(groups[4]), float(groups[5]), float(groups[6]))
-                    if groups[7] == 'W': lon = -lon
-                    
-            elif len(groups) >= 6:
-                # DDM format
-                if groups[0] in ['N', 'S']:
-                    lat = self._dm_to_decimal(float(groups[1]), float(groups[2]))
-                    if groups[0] == 'S': lat = -lat
-                    lon = self._dm_to_decimal(float(groups[4]), float(groups[5]))
-                    if groups[3] == 'W': lon = -lon
-                else:
-                    lat = self._dm_to_decimal(float(groups[0]), float(groups[1]))
-                    if groups[2] == 'S': lat = -lat
-                    lon = self._dm_to_decimal(float(groups[3]), float(groups[4]))
-                    if groups[5] == 'W': lon = -lon
-            
+            elif pattern_type == 'pure_decimal':
+                # Pure decimal coordinates - requires extra validation
+                lat, lon = float(groups[0]), float(groups[1])
+                
             else:
                 return None
             
-            # Validate coordinates
-            if -90 <= lat <= 90 and -180 <= lon <= 180:
-                return {
-                    'latitude': lat,
-                    'longitude': lon,
-                    'source_text': match.group(0)
-                }
+            return {
+                'latitude': lat,
+                'longitude': lon,
+                'source_text': match.group(0).strip()
+            }
                 
         except (ValueError, IndexError):
-            pass
-            
-        return None
-    
-    def _is_float(self, value: str) -> bool:
-        """Check if a string can be converted to float"""
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
+            return None
     
     def _dms_to_decimal(self, degrees: float, minutes: float, seconds: float) -> float:
         """Convert degrees, minutes, seconds to decimal degrees"""
@@ -173,11 +295,10 @@ class GPSExtractor:
         
         def float_to_rational(f: float) -> Tuple[int, int]:
             """Convert float to rational number (numerator, denominator)"""
-            # Use high precision for seconds
             if f == int(f):
                 return int(f), 1
             else:
-                # Convert to rational with precision
+                # Use high precision for seconds
                 precision = 1000000
                 return int(f * precision), precision
         
@@ -197,7 +318,8 @@ class GPSExtractor:
                 (lon_min, 1),
                 float_to_rational(lon_sec)
             ],
-            piexif.GPSIFD.GPSMapDatum: 'WGS-84'
+            piexif.GPSIFD.GPSMapDatum: 'WGS-84',
+            piexif.GPSIFD.GPSVersionID: (2, 2, 0, 0)
         }
         
         return gps_data
@@ -232,7 +354,8 @@ class OCRWorker(QThread):
                         'image_path': image_path,
                         'text_data': [],
                         'processed_at': time.strftime('%Y-%m-%d %H:%M:%S'),
-                        'gps_coordinates': None
+                        'gps_coordinates': None,
+                        'all_detected_text': []
                     }
                     
                     extracted_texts = []
@@ -244,6 +367,7 @@ class OCRWorker(QThread):
                             confidence = detection[2]  # Confidence
                             
                             extracted_texts.append(text)
+                            formatted_result['all_detected_text'].append(text)
                             
                             formatted_result['text_data'].append({
                                 'text': text,
@@ -259,7 +383,8 @@ class OCRWorker(QThread):
                     # Extract GPS coordinates from all detected text
                     if extracted_texts:
                         gps_coords = self.gps_extractor.extract_gps_coordinates(extracted_texts)
-                        formatted_result['gps_coordinates'] = gps_coords
+                        if gps_coords:
+                            formatted_result['gps_coordinates'] = gps_coords
                     
                     self.results.append(formatted_result)
                     
@@ -357,7 +482,7 @@ class OCRApp(QMainWindow):
         
     def init_ui(self):
         """Initialize the user interface"""
-        self.setWindowTitle("LIGER-Layer-based Image and GPS Extraction and Recognition")
+        self.setWindowTitle("LIGER - Layer-based Image GPS Extraction and Recognition (Enhanced)")
         self.setGeometry(100, 100, 1200, 800)
         
         # Central widget
@@ -376,7 +501,7 @@ class OCRApp(QMainWindow):
         main_layout.addWidget(right_panel, 2)
         
         # Status bar
-        self.statusBar().showMessage("Ready - Select images to extract GPS coordinates")
+        self.statusBar().showMessage("Ready - Enhanced GPS extraction with reduced false positives")
         
     def create_control_panel(self):
         """Create the left control panel"""
@@ -524,7 +649,7 @@ class OCRApp(QMainWindow):
         # Disable UI during processing
         self.process_btn.setEnabled(False)
         self.progress_bar.setValue(0)
-        self.statusBar().showMessage("Processing images and extracting GPS...")
+        self.statusBar().showMessage("Processing images and extracting GPS with enhanced accuracy...")
         
         # Start OCR worker
         self.ocr_worker = OCRWorker(self.selected_files, self.lang_combo.currentText())
@@ -540,7 +665,8 @@ class OCRApp(QMainWindow):
         self.export_btn.setEnabled(True)
         self.save_images_btn.setEnabled(True)
         
-        # Count how many images have GPS data
+        # Count how many images have GPS data with confidence levels
+        gps_results = [result for result in results if result.get('gps_coordinates')]
         gps_count = sum(1 for result in results if result.get('gps_coordinates'))
         
         self.statusBar().showMessage(f"Processing complete! Found GPS in {gps_count}/{len(results)} images")
@@ -723,7 +849,7 @@ class OCRApp(QMainWindow):
                     
                     # Add comprehensive metadata
                     exif_dict['0th'][piexif.ImageIFD.ImageDescription] = f"GPS: {gps_coords['latitude']:.6f}, {gps_coords['longitude']:.6f}"
-                    exif_dict['0th'][piexif.ImageIFD.Software] = "LIGER"
+                    exif_dict['0th'][piexif.ImageIFD.Software] = "GPS OCR Extractor"
                     exif_dict['0th'][piexif.ImageIFD.XPKeywords] = f"GPS {gps_coords['source_text']}".encode('utf-16le')
                     
                     # Add processing info to EXIF
