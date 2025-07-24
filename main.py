@@ -482,7 +482,7 @@ class OCRApp(QMainWindow):
         
     def init_ui(self):
         """Initialize the user interface"""
-        self.setWindowTitle("LIGER - Layer-based Image GPS Extraction and Recognition (Enhanced)")
+        self.setWindowTitle("LIGER - Layer-based Image GPS Extraction and Recovery")
         self.setGeometry(100, 100, 1200, 800)
         
         # Central widget
@@ -780,7 +780,7 @@ class OCRApp(QMainWindow):
                 
                 # Add processing info to main EXIF
                 exif_dict['0th'][piexif.ImageIFD.ImageDescription] = f"GPS extracted: {gps_coords['latitude']:.6f}, {gps_coords['longitude']:.6f}"
-                exif_dict['0th'][piexif.ImageIFD.Software] = "GPS OCR Extractor"
+                exif_dict['0th'][piexif.ImageIFD.Software] = "LIGER"
                 
                 # Save GPS data back to image
                 exif_bytes = piexif.dump(exif_dict)
@@ -849,7 +849,7 @@ class OCRApp(QMainWindow):
                     
                     # Add comprehensive metadata
                     exif_dict['0th'][piexif.ImageIFD.ImageDescription] = f"GPS: {gps_coords['latitude']:.6f}, {gps_coords['longitude']:.6f}"
-                    exif_dict['0th'][piexif.ImageIFD.Software] = "GPS OCR Extractor"
+                    exif_dict['0th'][piexif.ImageIFD.Software] = "LIGER"
                     exif_dict['0th'][piexif.ImageIFD.XPKeywords] = f"GPS {gps_coords['source_text']}".encode('utf-16le')
                     
                     # Add processing info to EXIF

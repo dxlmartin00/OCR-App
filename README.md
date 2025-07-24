@@ -1,4 +1,4 @@
-# LIGER - Layer-based Image GPS Extraction and Recognition
+# LIGER - Layer-based Image GPS Extraction and Recovery
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -6,7 +6,7 @@
 
 **LIGER** is an advanced OCR-based application that extracts GPS coordinates from images containing text and embeds them directly into image metadata. Perfect for geotagging photos, processing screenshots of maps, or extracting location data from any image containing coordinate information.
 
-![LIGER Interface](screenshots/main_interface.png)
+![LIGER Interface](screenshots/Screenshot_2.png)
 
 ## 🌟 Key Features
 
@@ -141,7 +141,7 @@ liger-gps-extractor/
 ├── README.md              # This file
 ├── LICENSE                # License file
 ├── screenshots/           # Application screenshots
-│   └── main_interface.png
+│   └── Screenshot_2.png
 └── examples/              # Example images for testing
     ├── map_screenshot.jpg
     ├── gps_photo.png
@@ -219,8 +219,8 @@ We welcome contributions! Here's how to get started:
 ### Development Setup
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/liger-gps-extractor.git
-cd liger-gps-extractor
+git clone https://github.com/dxlmartin00/OCR-App.git
+cd OCR-App
 
 # Install development dependencies
 pip install -r requirements-dev.txt
