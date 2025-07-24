@@ -45,8 +45,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/liger-gps-extractor.git
-cd liger-gps-extractor
+git clone https://github.com/dxlmartin00/OCR-App.git
+cd OCR-App
 
 # Install required packages
 pip install -r requirements.txt
