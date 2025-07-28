@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QGroupBox, QCheckBox, QComboBox, QMessageBox,
                             QScrollArea, QFrame)
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QIcon
 from PIL import Image
 import piexif
 
@@ -35,6 +35,7 @@ class OCRApp(QMainWindow):
         """Initialize the user interface"""
         self.setWindowTitle("LIGER - Layer-based Image GPS Extraction and Recovery")
         self.setGeometry(100, 100, 1200, 800)
+        self.setWindowIcon(QIcon('app_logo.png'))
 
         # Central widget
         central_widget = QWidget()
