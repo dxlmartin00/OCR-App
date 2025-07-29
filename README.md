@@ -64,17 +64,8 @@
 git clone https://github.com/dxlmartin00/OCR-App.git
 cd OCR-App
 
-# Install required packages
-pip install -r requirements.txt
 ```
-
-### Requirements.txt
-```
-PyQt6>=6.0.0
-easyocr>=1.6.0
-Pillow>=8.0.0
-piexif>=1.1.3
-```
+Open the "Instructions on how to open app.txt" for the installation process. 
 
 ### Additional Setup
 EasyOCR will automatically download language models on first use. The application includes intelligent model caching to improve performance on subsequent runs.
@@ -296,9 +287,6 @@ We welcome contributions! Here's how to get started:
 # Clone your fork
 git clone https://github.com/dxlmartin00/OCR-App.git
 cd OCR-App
-
-# Install development dependencies
-pip install -r requirements.txt
 
 # Run the application
 python main.py
