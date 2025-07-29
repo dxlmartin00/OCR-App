@@ -10,30 +10,46 @@
 
 ## 🌟 Key Features
 
-### 📍 Enhanced GPS Extraction
+### 📍 Enhanced GPS Extraction with Advanced Pattern Recognition
 - **Multiple GPS Format Support**: Recognizes various coordinate formats including:
   - Decimal Degrees: `40.7128, -74.0060`
   - Degrees Minutes Seconds: `40°42'46"N, 74°00'21"W`
   - Degrees Decimal Minutes: `40°42.767'N, 74°00.350'W`
   - Labeled Coordinates: `LAT: 40.7128, LON: -74.0060`
   - GPS Tags: `GPS: (40.7128, -74.0060)`
+  - Comma-separated DMS: `N 9° 38' 42.861", E 125° 32' 58.411"`
+- **Enhanced Degree Symbol Recognition**: Supports multiple degree representations (`°`, `º`, `˚`, `o`, `0`, `deg`)
+- **Priority-based Pattern Matching**: Higher confidence for explicitly labeled GPS coordinates
+- **Advanced False Positive Filtering**: Intelligent exclusion of timestamps, file sizes, camera settings, and other non-GPS data
 
-### 🔍 Advanced OCR Processing
-- **EasyOCR Integration**: High-accuracy text recognition
+### 🔍 Advanced OCR Processing with Multi-Pass Technology
+- **EasyOCR Integration**: High-accuracy text recognition with model caching
 - **Multi-language Support**: English, Chinese, French, German, Korean, Japanese
-- **Visual Text Overlay**: See exactly where text was detected
-- **False Positive Reduction**: Intelligent filtering to avoid extracting timestamps, file sizes, and other non-GPS data
+- **Multi-Pass OCR Processing**: Three-pass system with varying confidence thresholds
+- **Smart Region Detection (ROI)**: Targeted processing of coordinate-likely regions
+- **GPU Acceleration Support**: Optional GPU processing for faster performance
+- **Visual Text Overlay**: See exactly where text was detected with bounding boxes
+- **Overlap Detection**: Intelligent merging of duplicate text detections
 
-### 💾 Metadata Embedding
-- **EXIF GPS Integration**: Embeds coordinates in standard GPS EXIF fields
+### 💾 Comprehensive Metadata Embedding
+- **Standard EXIF GPS Integration**: Embeds coordinates in industry-standard GPS EXIF fields
 - **Cross-platform Compatibility**: GPS data readable by photo viewers, mapping apps, and photo management tools
-- **Batch Processing**: Process multiple images simultaneously
-- **Original File Preservation**: Option to create copies with GPS data
+- **Batch Processing**: Process multiple images simultaneously with progress tracking
+- **Original File Preservation**: Option to create copies with GPS data or modify originals
+- **Detailed Processing Metadata**: Complete audit trail including OCR confidence scores
 
-### 📊 Export Options
-- **JSON Export**: Detailed extraction results with confidence scores
-- **Image Copies**: Save new versions with embedded GPS metadata
+### 📊 Enhanced Export and Processing Options
+- **JSON Export**: Detailed extraction results with confidence scores and processing metadata
+- **Image Copies with GPS**: Save new versions with embedded GPS metadata
 - **Processing Reports**: Complete audit trail of extraction process
+- **Model Cache Management**: Efficient caching and clearing of OCR models
+- **Confidence Level Reporting**: HIGH, MEDIUM-HIGH, MEDIUM, LOW confidence classifications
+
+### 🎨 Modern User Interface
+- **Custom Styling**: Modern, polished interface with custom color schemes
+- **Enhanced Image Display**: Improved styling with rounded borders and better visual feedback
+- **Real-time Progress Tracking**: Live updates during processing
+- **Comprehensive Status Messages**: Detailed feedback on processing status and results
 
 ## 🚀 Installation
 
@@ -61,7 +77,7 @@ piexif>=1.1.3
 ```
 
 ### Additional Setup
-EasyOCR will automatically download language models on first use. Ensure you have a stable internet connection for the initial setup.
+EasyOCR will automatically download language models on first use. The application includes intelligent model caching to improve performance on subsequent runs.
 
 ## 📖 Usage
 
@@ -76,134 +92,193 @@ python main.py
    - Click "Select Images" to choose one or more image files
    - Supported formats: PNG, JPG, JPEG, BMP, TIFF, WebP
 
-2. **Configure OCR Settings**
-   - Choose the appropriate language for text recognition
-   - Default is English (`en`)
+2. **Configure Advanced OCR Settings**
+   - Choose the appropriate language for text recognition (default: English)
+   - **Multi-pass OCR**: Enable for higher accuracy (recommended)
+   - **Smart Region Detection**: Enable ROI processing for better coordinate detection
+   - **GPU Acceleration**: Enable if you have a compatible GPU
 
-3. **Process Images**
+3. **Process Images with Enhanced Algorithm**
    - Click "Extract GPS from Images" to start processing
-   - Progress bar shows current processing status
-   - View results in real-time as images are processed
+   - Watch real-time progress with detailed status updates
+   - Advanced three-pass OCR system automatically processes each image
+   - Smart region detection focuses on areas likely to contain coordinates
 
-4. **Review Results**
+4. **Review Comprehensive Results**
    - Select images from the list to view:
-     - Original image with text detection overlays
-     - Extracted text with confidence scores
-     - GPS coordinates (if found)
-     - Processing metadata
+     - Original image with precise text detection overlays
+     - Extracted text with OCR confidence scores
+     - GPS coordinates with extraction confidence levels
+     - Detailed processing metadata and timestamps
 
-5. **Export Results**
+5. **Export with Multiple Options**
    - **Embed GPS in Original Files**: Adds GPS metadata to your original images
    - **Save Images with GPS Data**: Creates copies with embedded GPS information
-   - **Export to JSON**: Detailed extraction results for analysis
+   - **Export to JSON**: Detailed extraction results with full processing information
+
+6. **Model Cache Management**
+   - View cached OCR models for different languages
+   - Clear cache when needed to free up disk space
 
 ## 🔧 Technical Details
 
-### GPS Coordinate Detection Algorithm
+### Enhanced GPS Coordinate Detection Algorithm
 
-The application uses a sophisticated multi-pattern recognition system with priority-based matching:
+The application uses a sophisticated multi-layer recognition system:
 
-1. **Pattern Priority System**: Higher priority patterns (labeled GPS coordinates) are processed first
-2. **Validation Layer**: Coordinates are validated for reasonable ranges and precision
-3. **False Positive Filtering**: Excludes timestamps, file sizes, measurements, and other non-GPS data
-4. **Confidence Scoring**: Each extraction includes a confidence level (HIGH, MEDIUM-HIGH, MEDIUM, LOW)
+1. **Priority-based Pattern Matching**: 10-level priority system with labeled GPS coordinates receiving highest priority
+2. **Advanced Validation Layer**: 
+   - Coordinate range validation (-90 to 90 for latitude, -180 to 180 for longitude)
+   - Context-aware precision requirements
+   - Geographic reasonableness checks
+3. **Comprehensive False Positive Filtering**: Excludes over 100 different patterns including:
+   - Timestamps and dates
+   - File sizes and data rates
+   - Camera settings (ISO, aperture, shutter speed)
+   - Measurements and technical specifications
+   - Serial numbers and model information
+4. **Context Scoring**: GPS context awareness based on surrounding text
+5. **Confidence Classification**: Four-level confidence system (HIGH, MEDIUM-HIGH, MEDIUM, LOW)
 
-### Supported GPS Formats
+### Multi-Pass OCR Processing System
 
-| Format | Example | Priority |
-|--------|---------|----------|
-| Labeled GPS | `GPS: 40.7128, -74.0060` | HIGH |
-| Lat/Lon Labels | `LAT: 40.7128 N, LON: 74.0060 W` | HIGH |
-| DMS with Direction | `40°42'46"N, 74°00'21"W` | MEDIUM-HIGH |
-| Decimal with Direction | `N40.7128, W74.0060` | MEDIUM |
-| Pure Decimal | `40.712800, -74.006000` | LOW |
+1. **Pass 1**: High confidence detection (text_threshold=0.8, min_size=10)
+2. **Pass 2**: Medium confidence for missed text (text_threshold=0.6, min_size=5)
+3. **Pass 3**: Low confidence for coordinate patterns (text_threshold=0.4, min_size=3)
+4. **ROI Processing**: Targeted processing of 8 coordinate-likely regions
+5. **Overlap Resolution**: Intelligent merging of duplicate detections
+
+### Supported GPS Formats with Priority Levels
+
+| Format | Example | Priority | Confidence |
+|--------|---------|----------|------------|
+| Labeled GPS | `GPS: 40.7128, -74.0060` | 10 | HIGH |
+| Lat/Lon Labels | `LAT: 40.7128 N, LON: 74.0060 W` | 9 | HIGH |
+| DMS with Direction | `40°42'46"N, 74°00'21"W` | 9 | MEDIUM-HIGH |
+| DMS Comma Format | `N 9° 38' 42.861", E 125° 32' 58.411"` | 9 | MEDIUM-HIGH |
+| Decimal with Direction | `N40.7128, W74.0060` | 7 | MEDIUM |
+| Pure Decimal | `40.712800, -74.006000` | 5 | LOW |
 
 ### EXIF Metadata Structure
 
 GPS coordinates are embedded using standard EXIF GPS tags:
-- `GPSLatitude` & `GPSLatitudeRef`
-- `GPSLongitude` & `GPSLongitudeRef`
-- `GPSMapDatum` (WGS-84)
-- `GPSVersionID`
+- `GPSLatitude` & `GPSLatitudeRef` (degrees, minutes, seconds format)
+- `GPSLongitude` & `GPSLongitudeRef` (degrees, minutes, seconds format)
+- `GPSMapDatum` (WGS-84 standard)
+- `GPSVersionID` (GPS specification version)
 
-Additional metadata includes:
-- Processing timestamp
+Additional comprehensive metadata includes:
+- Processing timestamp and OCR engine information
 - Source text that contained GPS coordinates
-- OCR confidence scores
-- Original filename
+- OCR confidence scores and processing statistics
+- Original filename and processing parameters
 
 ## 📁 Project Structure
 
 ```
 liger-gps-extractor/
-├── main.py                 # Main application file
-├── requirements.txt        # Python dependencies
-├── README.md              # This file
-├── LICENSE                # License file
+├── main.py                # Main application with enhanced UI
+├── gps_extractor.py       # Advanced GPS extraction engine
+├── ocr_worker.py          # Multi-threaded OCR worker with caching
+├── image_display.py       # Enhanced image display widget
+├── app_icon.png           # App logo
+├── app_logo.png           # 1:1 logo
+├── README.md              # This documentation
+├── gitignore              
 ├── screenshots/           # Application screenshots
+│   ├── Screenshot_1.png
 │   └── Screenshot_2.png
-└── examples/              # Example images for testing
-    ├── map_screenshot.jpg
-    ├── gps_photo.png
-    └── coordinates_text.jpg
+
 ```
 
 ## 🔍 Example Use Cases
 
-### 📱 Map Screenshots
+### 📱 Map Screenshots and Navigation
 Extract GPS coordinates from:
-- Google Maps screenshots
-- GPS app displays
-- Navigation screenshots
-- Survey photos with coordinates
+- Google Maps screenshots with various coordinate formats
+- GPS device displays and dashboards
+- Navigation app screenshots
+- Survey photos with embedded coordinates
 
-### 📷 Field Photos
+### 📷 Field Documentation
 Process images containing:
-- GPS device displays
-- Coordinate annotations
-- Survey markers
-- Location stamps
+- GPS device readouts and displays
+- Coordinate annotations and markings
+- Survey markers and reference points
+- Scientific field documentation
 
-### 🗺️ Document Processing
+### 🗺️ Technical Document Processing
 Extract coordinates from:
-- Technical reports
-- Survey documents
-- Research papers
-- Field notes
+- Technical reports and surveys
+- Research papers with coordinate data
+- Field notes and documentation
+- Geographic information systems exports
 
-## ⚡ Performance Tips
+### 📊 Data Recovery and Migration
+- Recover GPS data from screenshot archives
+- Process historical coordinate documentation
+- Convert coordinate formats between systems
+- Validate and verify coordinate accuracy
 
-1. **Image Quality**: Higher resolution images with clear text yield better results
+## ⚡ Performance Tips and Optimization
+
+1. **Image Quality**: Higher resolution images with clear, readable text yield better results
 2. **Language Selection**: Choose the correct language model for optimal OCR accuracy
-3. **Batch Processing**: Process multiple images together for efficiency
-4. **Format Compatibility**: Use JPEG or TIFF for best EXIF metadata support
+3. **GPU Acceleration**: Enable GPU processing if available for faster performance
+4. **Batch Processing**: Process multiple images together for efficiency
+5. **Model Caching**: First run downloads models; subsequent runs are much faster
+6. **ROI Detection**: Smart region detection improves accuracy for coordinate-heavy images
+7. **Format Compatibility**: Use JPEG or TIFF for best EXIF metadata support
 
-## 🐛 Troubleshooting
+## 🐛 Troubleshooting and Common Issues
 
-### Common Issues
+### OCR and Processing Issues
 
-**OCR Initialization Failed**
-- Ensure stable internet connection for EasyOCR model download
-- Check available disk space for model storage
-- Verify Python version compatibility
+**OCR Model Loading Failed**
+- Ensure stable internet connection for initial model download
+- Check available disk space (models require 100-500MB each)
+- Verify Python version compatibility (3.7+)
+- Try clearing model cache and redownloading
 
 **No GPS Coordinates Detected**
 - Verify image contains visible coordinate text
-- Try different language models
+- Try different language models if text is in multiple languages
+- Enable Multi-pass OCR for better detection
 - Check if coordinates match supported formats
-- Ensure text is clear and readable
+- Ensure text is clear and readable (minimum 10px text height recommended)
+
+**Low Detection Accuracy**
+- Enable Smart Region Detection (ROI)
+- Use Multi-pass OCR processing
+- Try GPU acceleration if available
+- Increase image resolution if possible
+
+### Metadata and Export Issues
 
 **EXIF Embedding Failed**
-- Some image formats don't support EXIF data
-- Use "Save Images with GPS Data" for format conversion
+- Some image formats don't support EXIF data (PNG, WebP)
+- Use "Save Images with GPS Data" for automatic format conversion
 - Check file permissions for original images
+- Verify sufficient disk space for output files
 
-### Error Reporting
-If you encounter issues:
-1. Check the console output for detailed error messages
-2. Verify all dependencies are installed correctly
-3. Test with the provided example images
-4. Create an issue on GitHub with error details
+**Export Errors**
+- Ensure write permissions in output directory
+- Check available disk space
+- Verify all required dependencies are installed
+
+### Performance Issues
+
+**Slow Processing**
+- Enable GPU acceleration if available
+- Process smaller batches of images
+- Clear model cache if memory is limited
+- Close other resource-intensive applications
+
+**Memory Issues**
+- Process images in smaller batches
+- Clear model cache between sessions
+- Reduce image resolution if extremely high
+- Ensure sufficient RAM (4GB+ recommended)
 
 ## 🤝 Contributing
 
@@ -223,11 +298,17 @@ git clone https://github.com/dxlmartin00/OCR-App.git
 cd OCR-App
 
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
-# Run tests
-python -m pytest tests/
+# Run the application
+python main.py
 ```
+
+### Development Guidelines
+- Follow existing code style and patterns
+- Add comprehensive comments for new algorithms
+- Test with various coordinate formats and image types
+- Update documentation for new features
 
 ## 📝 License
 
@@ -235,24 +316,38 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **EasyOCR**: Excellent OCR library by JaidedAI
-- **PyQt6**: Powerful GUI framework
-- **piexif**: EXIF data manipulation library
-- **Pillow**: Python Imaging Library
+- **EasyOCR**: Excellent OCR library by JaidedAI for text recognition
+- **PyQt6**: Powerful GUI framework for cross-platform applications
+- **piexif**: EXIF data manipulation library for metadata embedding
+- **Pillow**: Python Imaging Library for image processing
+- **Replit**: Development and deployment platform
 
-## 📧 Support
+## 📧 Support and Contact
 
 - **Email**: lummartin@nemsu.edu.ph
+- **Issues**: Create an issue on GitHub for bug reports or feature requests
 
 ## 🔄 Version History
 
-### v1.0.0 (Current)
-- Initial release with enhanced GPS extraction
+### v2.0.0 (Current)
+- **Enhanced GPS Extraction**: Advanced pattern recognition with priority-based matching
+- **Multi-Pass OCR Processing**: Three-pass system with smart region detection
+- **Improved UI**: Modern styling with enhanced visual feedback
+- **Model Caching System**: Efficient OCR model management
+- **Advanced False Positive Filtering**: Comprehensive exclusion patterns
+- **GPU Acceleration Support**: Optional GPU processing for performance
+- **Confidence Level Reporting**: Four-level confidence classification
+- **ROI Detection**: Smart processing of coordinate-likely regions
+
+### v1.0.0 (Previous)
+- Initial release with basic GPS extraction
 - Multi-format coordinate support
 - EXIF metadata embedding
 - Batch processing capabilities
-- Advanced false positive filtering
+- Basic false positive filtering
 
 ---
 
 **Made with ❤️ for the geospatial community**
+
+*Enhanced with advanced OCR technology and intelligent coordinate detection*
