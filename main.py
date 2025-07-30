@@ -54,6 +54,8 @@ class OCRApp(QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready - Enhanced GPS extraction with reduced false positives")
+        copyright_label = QLabel("© ICT4RM-CarSU & Martin, Amora")
+        self.statusBar().addPermanentWidget(copyright_label, stretch=0)
 
     def create_control_panel(self):
         """Create the left control panel"""
@@ -90,11 +92,11 @@ class OCRApp(QMainWindow):
         
         # Advanced OCR options
         self.multi_pass_cb = QCheckBox("Multi-pass OCR (Higher Accuracy)")
-        self.multi_pass_cb.setChecked(True)
+        self.multi_pass_cb.setChecked(False)
         settings_layout.addWidget(self.multi_pass_cb)
         
         self.roi_detection_cb = QCheckBox("Smart Region Detection")
-        self.roi_detection_cb.setChecked(True)
+        self.roi_detection_cb.setChecked(False)
         settings_layout.addWidget(self.roi_detection_cb)
         
         self.gpu_acceleration_cb = QCheckBox("GPU Acceleration (if available)")
@@ -128,13 +130,13 @@ class OCRApp(QMainWindow):
         self.export_json_cb.setChecked(True)
         export_layout.addWidget(self.export_json_cb)
 
-        self.export_btn = QPushButton("Export Results")
+        self.export_btn = QPushButton("Export JSON & Image")
         self.export_btn.clicked.connect(self.export_results)
         self.export_btn.setEnabled(False)
         export_layout.addWidget(self.export_btn)
 
         # Save Images with GPS
-        self.save_images_btn = QPushButton("Save Images with GPS Data")
+        self.save_images_btn = QPushButton("Save Images with GPS Data Only")
         self.save_images_btn.clicked.connect(self.save_images_with_gps)
         self.save_images_btn.setEnabled(False)
         export_layout.addWidget(self.save_images_btn)

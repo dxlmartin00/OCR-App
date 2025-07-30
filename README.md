@@ -56,26 +56,26 @@
 ### Prerequisites
 - Python 3.7 or higher
 - pip package manager
+- easyocr 1.6.0
+- pillow v.8
+- pyqt6 
+- piexif v1.1.3
 
 ### Dependencies Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/dxlmartin00/OCR-App.git
-cd OCR-App
 
 ```
-Open the "Instructions on how to open app.txt" for the installation process. 
-
 ### Additional Setup
 EasyOCR will automatically download language models on first use. The application includes intelligent model caching to improve performance on subsequent runs.
 
 ## 📖 Usage
 
 ### Running the Application
-```bash
-python main.py
-```
+- Launch the Set-up.bat and wait for the download to finish.
+- Then Launch the LIGER.bat to open the app.
 
 ### Step-by-Step Guide
 
@@ -317,7 +317,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔄 Version History
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+- **Executable File**: Added the Set-up.bat file for easy installment of dependencies
+
+### v2.0.0 (Previous)
 - **Enhanced GPS Extraction**: Advanced pattern recognition with priority-based matching
 - **Multi-Pass OCR Processing**: Three-pass system with smart region detection
 - **Improved UI**: Modern styling with enhanced visual feedback
@@ -327,7 +330,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Confidence Level Reporting**: Four-level confidence classification
 - **ROI Detection**: Smart processing of coordinate-likely regions
 
-### v1.0.0 (Previous)
+### v1.0.0 (Initial Release)
 - Initial release with basic GPS extraction
 - Multi-format coordinate support
 - EXIF metadata embedding
